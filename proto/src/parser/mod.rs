@@ -72,9 +72,9 @@ impl XmppParser {
     pub fn next_event(&mut self) -> Option<Event> {
         // Using loop for now but can be removed soon I think
         loop {
-            trace!("next_event");
-            trace!("     -> parse pos {:?}", self.parser.position());
-            trace!("     -> available: {:?}",
+            println!("next_event");
+            println!("     -> parse pos {:?}", self.parser.position());
+            println!("     -> available: {:?}",
                    self.parser.source().available_data());
 
 
@@ -89,11 +89,11 @@ impl XmppParser {
                 Ok(xml_event) => {
                     match xml_event {
                         XmlEvent::StartDocument { .. } => {
-                            trace!("     -> Start Document");
+                            println!("     -> Start Document");
                             continue;
                         }
                         XmlEvent::StartElement { ref name, .. } if name.local_name == "stream" && name.namespace_ref() == Some(ns::STREAM) => {
-                            trace!("     -> Start stream:stream");
+                            println!("     -> Start stream:stream");
                             let e = OpenStream::new(&XMPPConfig::new());
 
                             return Some(e.to_event());
@@ -109,8 +109,8 @@ impl XmppParser {
                         }
 
                         e => {
-                            trace!("----------> Hit something");
-                            trace!("{:?}", e);
+                            println!("----------> Hit something");
+                            println!("{:?}", e);
                             continue;
                         }
                     }
@@ -127,7 +127,7 @@ impl XmppParser {
                 Err(ref e) if e.kind()
                                   .eq(&XmlErrorKind::Syntax(Cow::from("Invalid processing instruction: <?xml"))) => continue,
                 Err(e) => {
-                    trace!("Error {:?}", e);
+                    println!("Error {:?}", e);
                     break;
                 }
             }
@@ -151,12 +151,7 @@ mod tests {
         let mut x = XmppParser::new();
 
         x.feed("<?xml version='1.0'?><stream:stream id='16243086933621190650' version='1.0' xml:lang='en' xmlns:stream='http://etherx.jabber.org/streams' from='exampl".as_bytes());
-        match x.next_event() {
-            None => assert!(true),
-            Some(_) => assert!(false),
-        }
-
-        x.feed(b"e.com' xmlns='jabber:client'>");
+        x.feed("e.com' xmlns='jabber:client'>".as_bytes());
         match x.next_event() {
             Some(_) => assert!(true),
             None => assert!(false),
